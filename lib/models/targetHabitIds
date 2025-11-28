@@ -1,0 +1,47 @@
+import 'package:equatable/equatable.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class EventModel extends Equatable {
+  final String id;
+  final String title;
+  final String description;
+  final DateTime startDate;
+  final DateTime endDate;
+  final List<String> targetHabitIds; // Filter: Habit apa saja yang dihitung di event ini
+  final String rewardTitle; // e.g., "Voucher Tumbler Corkcicle"
+  final int minPointsToClaim; // Target poin untuk dapat reward
+
+  const EventModel({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.startDate,
+    required this.endDate,
+    required this.targetHabitIds,
+    required this.rewardTitle,
+    required this.minPointsToClaim,
+  });
+
+  factory EventModel.fromMap(Map<String, dynamic> map, String id) {
+    return EventModel(
+      id: id,
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      // Konversi Timestamp Firestore ke DateTime
+      startDate: (map['startDate'] as Timestamp).toDate(),
+      endDate: (map['endDate'] as Timestamp).toDate(),
+      targetHabitIds: List<String>.from(map['targetHabitIds'] ?? []),
+      rewardTitle: map['rewardTitle'] ?? '',
+      minPointsToClaim: map['minPointsToClaim']?.toInt() ?? 100,
+    );
+  }
+
+  // Helper untuk mengecek apakah event sedang aktif
+  bool get isActive {
+    final now = DateTime.now();
+    return now.isAfter(startDate) && now.isBefore(endDate);
+  }
+
+  @override
+  List<Object?> get props => [id, title, startDate, endDate];
+}
